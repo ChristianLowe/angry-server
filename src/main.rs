@@ -16,6 +16,8 @@ fn main() {
     loop {
         match socket.recv_from(&mut buf) {
             Ok((amt, src)) => {
+                println!("amt: {} | src: {}", amt, src);
+                println!("buf: {}", str::from_utf8(&buf).unwrap_or(""));
                 let buf = &mut buf[..amt];
                 buf.reverse();
                 socket.send_to(buf, &src);
