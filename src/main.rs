@@ -2,26 +2,28 @@ use std::str;
 use std::net::UdpSocket;
 
 fn main() {
-    println!("Starting angry-server");
+    println!("Starting angry-server...");
 
-    let mut socket = match UdpSocket::bind("0.0.0.0:34543") {
+    let port = 34543;
+    let socket = match UdpSocket::bind(("0.0.0.0", port)) {
         Ok(s) => s,
         Err(e) => panic!("Unable to bind socket: {}", e)
     };
 
-    println!("Bound to port 34543.");
+    println!("Server started on port {}.", port);
 
     // read from the socket
-    let mut buf = [0; 2048];
-
     loop {
+        let mut buf = [0; 1024];
+        
         match socket.recv_from(&mut buf) {
-            Ok((amt, src)) => {
-                println!("amt: {} | src: {}", amt, src);
-                println!("buf: {}", str::from_utf8(&buf).unwrap_or(""));
-                let buf = &mut buf[..amt];
-                buf.reverse();
-                socket.send_to(buf, &src);
+            Ok((_, src)) => {
+                println!("** ({}): {}", src, str::from_utf8(&buf).unwrap_or(""));
+
+                let lowercase_text = String::from_utf8_lossy(&buf);
+                let uppercase_text = lowercase_text.to_uppercase().into_bytes();
+                
+                socket.send_to(&uppercase_text, &src).expect("Could not return message.");
             },
 
             Err(e) => { println!("Unable to recieve data: {}", e); }
